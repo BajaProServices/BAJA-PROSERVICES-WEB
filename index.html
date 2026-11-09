@@ -1,246 +1,321 @@
-
 <index.html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Baja Pro-Services | Sistema Solar Interactivo CFE BCS</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts & Lucide Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Leaflet Maps CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Export Libraries (html2pdf & html2canvas) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-    .tab-active { border-bottom: 3px solid #f59e0b; color: #fbbf24; font-weight: 700; background-color: rgba(245, 158, 11, 0.1); }
-    #map-bcs { height: 420px; width: 100%; border-radius: 0.75rem; z-index: 10; }
-    #google-map-customer { height: 280px; width: 100%; border-radius: 0.75rem; z-index: 10; }
+    :root {
+      --bg: #08131f;
+      --bg-soft: #0e1d2b;
+      --panel: #0f1f2d;
+      --panel-strong: #132a3d;
+      --panel-alt: #102536;
+      --line: rgba(148, 163, 184, 0.18);
+      --muted: #aab8c9;
+      --text: #edf6ff;
+      --amber: #fbbf24;
+      --amber-strong: #f59e0b;
+      --amber-soft: rgba(251, 191, 36, 0.12);
+      --emerald: #34d399;
+      --blue: #60a5fa;
+      --red: #f87171;
+      --shadow: rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(59,130,246,0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(251,191,36,0.12), transparent 25%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .glass-panel {
+      background: linear-gradient(180deg, rgba(15,31,45,0.96), rgba(12,24,35,0.96));
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 32px var(--shadow);
+    }
+
+    .tab-active {
+      border-bottom: 3px solid var(--amber);
+      color: #f8d071;
+      font-weight: 800;
+      background: linear-gradient(180deg, rgba(251,191,36,0.12), rgba(251,191,36,0.02));
+    }
+
+    #map-bcs, #google-map-customer {
+      height: 420px;
+      width: 100%;
+      border-radius: 1rem;
+      z-index: 10;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    #google-map-customer {
+      height: 280px;
+    }
+
+    .field {
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+
+    .field:focus {
+      border-color: rgba(251, 191, 36, 0.85);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(251,191,36,0.15);
+    }
+
+    .muted-bg { background: rgba(148, 163, 184, 0.05); }
+    .section-title { letter-spacing: 0.02em; }
+
+    .summary-card {
+      background: linear-gradient(135deg, rgba(17,24,39,0.94), rgba(15,31,45,0.96));
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .status-pulse {
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(1.15); }
+    }
+
+    .leaflet-container {
+      background: #0b1723;
+    }
+
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+      background: #07131e;
+      color: #edf6ff;
+    }
+
+    .hero-glow {
+      background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(59,130,246,0.08));
+      border: 1px solid rgba(251,191,36,0.18);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between">
-
-  <!-- NAVEGACIÓN SUPERIOR / CABECERA CON LOGO BAJA PRO-SERVICES -->
-  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+  <header class="bg-slate-950/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-xl">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between">
       <div class="flex items-center space-x-3">
-        <!-- LOGO OFICIAL BAJA PRO-SERVICES -->
-        <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-2.5 rounded-xl font-extrabold flex items-center space-x-2 shadow-lg shadow-amber-500/20">
+        <div class="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 p-2.5 rounded-xl font-extrabold flex items-center space-x-2 shadow-lg shadow-amber-500/20">
           <i data-lucide="sun" class="w-7 h-7 text-slate-950"></i>
           <span class="text-xl tracking-wider font-black">BAJA PRO-SERVICES</span>
         </div>
-        <div class="hidden md:block pl-3 border-l border-slate-700">
-          <p class="text-xs text-amber-400 font-semibold tracking-wide">INGENIERÍA SOLAR & CONSTRUCCIÓN</p>
-          <p class="text-[10px] text-slate-400">La Paz & Los Cabos, BCS | Tel: (612) 123-4567</p>
+        <div class="hidden md:block pl-4 border-l border-slate-700">
+          <p class="text-[10px] uppercase tracking-[0.18em] text-amber-400 font-bold">Ingeniería Solar & Construcción</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">La Paz & Los Cabos, BCS | Tel: (612) 123-4567</p>
         </div>
       </div>
-      
-      <!-- INDICADOR DE ESTADO / USUARIO -->
-      <div id="user-status-bar" class="hidden flex items-center space-x-3 bg-slate-800/80 px-4 py-1.5 rounded-full border border-slate-700">
-        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-        <span id="active-user-email" class="text-xs text-slate-300 font-medium">usuario@bajaproservices.com</span>
-        <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition ml-2">
+
+      <div id="user-status-bar" class="hidden items-center space-x-3 bg-slate-900/90 px-4 py-2 rounded-full border border-slate-700 shadow-lg shadow-slate-950/40">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 status-pulse"></div>
+        <span id="active-user-email" class="text-xs text-slate-200 font-medium">usuario@bajaproservices.com</span>
+        <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition ml-1">
           <i data-lucide="log-out" class="w-4 h-4"></i>
         </button>
       </div>
     </div>
 
-    <!-- MENÚ DE PESTAÑAS (PÁGINAS 1 A 7) -->
-    <nav id="main-nav" class="hidden bg-slate-950/80 backdrop-blur border-t border-slate-800/60 overflow-x-auto">
+    <nav id="main-nav" class="hidden bg-slate-950/90 backdrop-blur border-t border-slate-800/70 overflow-x-auto">
       <div class="max-w-7xl mx-auto px-2 flex space-x-1">
-        <button onclick="switchTab(1)" id="tab-btn-1" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-400 whitespace-nowrap transition flex items-center space-x-1.5">
+        <button onclick="switchTab(1)" id="tab-btn-1" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-300 whitespace-nowrap transition flex items-center space-x-1.5">
           <i data-lucide="lock" class="w-4 h-4"></i><span>Pág 1: Acceso</span>
         </button>
-        <button onclick="switchTab(2)" id="tab-btn-2" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-400 whitespace-nowrap transition flex items-center space-x-1.5">
+        <button onclick="switchTab(2)" id="tab-btn-2" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-300 whitespace-nowrap transition flex items-center space-x-1.5">
           <i data-lucide="user-check" class="w-4 h-4"></i><span>Pág 2: Cliente & CFE</span>
         </button>
-        <button onclick="switchTab(3)" id="tab-btn-3" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-400 whitespace-nowrap transition flex items-center space-x-1.5">
+        <button onclick="switchTab(3)" id="tab-btn-3" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-300 whitespace-nowrap transition flex items-center space-x-1.5">
           <i data-lucide="map-pin" class="w-4 h-4"></i><span>Pág 3: Mapa Solar BCS</span>
         </button>
-        <button onclick="switchTab(4)" id="tab-btn-4" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-400 whitespace-nowrap transition flex items-center space-x-1.5">
-          <i data-lucide="file-text" class="w-4 h-4"></i><span>Pág 4: Cotización & Contrato</span>
+        <button onclick="switchTab(4)" id="tab-btn-4" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-300 whitespace-nowrap transition flex items-center space-x-1.5">
+          <i data-lucide="file-text" class="w-4 h-4"></i><span>Pág 4: Cotización</span>
         </button>
-        <button onclick="switchTab(5)" id="tab-btn-5" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-400 whitespace-nowrap transition flex items-center space-x-1.5">
-          <i data-lucide="calculator" class="w-4 h-4"></i><span>Pág 5: Revisión ($0.85/W)</span>
+        <button onclick="switchTab(5)" id="tab-btn-5" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-300 whitespace-nowrap transition flex items-center space-x-1.5">
+          <i data-lucide="calculator" class="w-4 h-4"></i><span>Pág 5: Revisión</span>
         </button>
-        <button onclick="switchTab(6)" id="tab-btn-6" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-400 whitespace-nowrap transition flex items-center space-x-1.5">
+        <button onclick="switchTab(6)" id="tab-btn-6" class="px-4 py-3 text-xs md:text-sm font-medium text-slate-400 hover:text-amber-300 whitespace-nowrap transition flex items-center space-x-1.5">
           <i data-lucide="cpu" class="w-4 h-4"></i><span>Pág 6-7: Equipamiento</span>
         </button>
       </div>
     </nav>
   </header>
 
-  <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
-
-    <!-- ==================== PÁGINA 1: ACCESO & REGISTRO ==================== -->
     <section id="page-1" class="block">
-      <div class="max-w-md mx-auto my-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-2xl">
-        <div class="text-center mb-6">
-          <div class="inline-flex bg-amber-500/10 text-amber-500 p-3 rounded-full mb-3">
-            <i data-lucide="shield-check" class="w-8 h-8"></i>
+      <div class="max-w-lg mx-auto my-10 glass-panel rounded-[28px] p-6 md:p-8 shadow-[0_30px_80px_rgba(2,6,23,0.7)]">
+        <div class="text-center mb-7">
+          <div class="inline-flex bg-amber-500/10 text-amber-400 p-3 rounded-full mb-4 border border-amber-500/20">
+            <i data-lucide="shield-check" class="w-9 h-9"></i>
           </div>
-          <h2 class="text-2xl font-bold text-white">Portal Autorizado</h2>
-          <p class="text-sm text-slate-400 mt-1">Plataforma de Dimensionamiento Fotovoltaico BCS</p>
+          <h2 class="text-3xl font-extrabold text-white">Portal Autorizado</h2>
+          <p class="text-sm text-slate-300 mt-2">Plataforma de dimensionamiento fotovoltaico para Baja California Sur</p>
         </div>
 
-        <!-- FORMULARIO LOGIN -->
         <div id="login-form-box">
           <form onsubmit="handleLogin(event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Correo Electrónico</label>
-              <input type="email" id="login-email" required placeholder="correo@empresa.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-[0.16em] mb-2">Correo electrónico</label>
+              <input type="email" id="login-email" required placeholder="correo@empresa.com" class="field w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Contraseña</label>
-              <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-[0.16em] mb-2">Contraseña</label>
+              <input type="password" id="login-pass" required placeholder="••••••••" class="field w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500">
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold py-3 rounded-lg shadow-lg shadow-amber-500/20 transition flex items-center justify-center space-x-2">
+            <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg shadow-amber-600/20 transition flex items-center justify-center space-x-2">
               <span>Ingresar al Sistema</span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
           </form>
+
           <div class="mt-6 pt-4 border-t border-slate-800 text-center">
             <p class="text-xs text-slate-400">¿No tienes autorización previa?</p>
-            <button onclick="toggleAuthMode('register')" class="text-xs font-semibold text-amber-400 hover:underline mt-1">
-              Forzar Registro de Nuevo Usuario
+            <button onclick="toggleAuthMode('register')" class="text-xs font-semibold text-amber-400 hover:text-amber-300 mt-2">
+              Forzar registro de nuevo usuario
             </button>
           </div>
         </div>
 
-        <!-- FORMULARIO REGISTRO -->
         <div id="register-form-box" class="hidden">
           <form onsubmit="handleRegister(event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nombre Completo</label>
-              <input type="text" id="reg-name" required placeholder="Ing. José Álvarez" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-[0.16em] mb-2">Nombre completo</label>
+              <input type="text" id="reg-name" required placeholder="Ing. José Álvarez" class="field w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Correo Electrónico</label>
-              <input type="email" id="reg-email" required placeholder="nuevo@cliente.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-[0.16em] mb-2">Correo electrónico</label>
+              <input type="email" id="reg-email" required placeholder="nuevo@cliente.com" class="field w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Contraseña Solicitada</label>
-              <input type="password" id="reg-pass" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-[0.16em] mb-2">Contraseña solicitada</label>
+              <input type="password" id="reg-pass" required placeholder="••••••••" class="field w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500">
             </div>
-            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg shadow-lg transition flex items-center justify-center space-x-2">
-              <span>Registrarse y Solicitar Acceso</span>
+            <button type="submit" class="w-full bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
+              <span>Registrarse y solicitar acceso</span>
               <i data-lucide="check-circle" class="w-4 h-4"></i>
             </button>
           </form>
+
           <div class="mt-6 pt-4 border-t border-slate-800 text-center">
-            <button onclick="toggleAuthMode('login')" class="text-xs font-semibold text-amber-400 hover:underline">
-              Volver al Formulario de Ingreso
+            <button onclick="toggleAuthMode('login')" class="text-xs font-semibold text-amber-400 hover:text-amber-300">
+              Volver al formulario de ingreso
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== PÁGINA 2: DATOS DEL CLIENTE & CFE ==================== -->
     <section id="page-2" class="hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- DATOS DEL CLIENTE Y TARIFAS CFE -->
         <div class="lg:col-span-7 space-y-6">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="glass-panel rounded-2xl p-6">
             <h3 class="text-lg font-bold text-white flex items-center space-x-2 mb-4">
               <i data-lucide="user" class="text-amber-400 w-5 h-5"></i>
-              <span>1. Registro y Ubicación del Cliente</span>
+              <span>1. Registro y ubicación del cliente</span>
             </h3>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Nombre Completo del Cliente</label>
-                <input type="text" id="cust-name" value="Prof. Edgar Felipe Soria Mendoza" oninput="updateAppState()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white">
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Nombre completo del cliente</label>
+                <input type="text" id="cust-name" value="Cliente Ejemplo S.A. de C.V." oninput="updateAppState()" class="field w-full rounded-xl px-3.5 py-2.5 text-sm text-white">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Teléfono / WhatsApp</label>
-                <input type="text" id="cust-phone" value="(612) 140-9876" oninput="updateAppState()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white">
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Teléfono / WhatsApp</label>
+                <input type="text" id="cust-phone" value="(612) 000-0000" oninput="updateAppState()" class="field w-full rounded-xl px-3.5 py-2.5 text-sm text-white">
               </div>
               <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Dirección Completa (BCS)</label>
-                <input type="text" id="cust-address" value="Colonia Vicente Guerrero, La Paz, Baja California Sur" oninput="updateAppState()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white">
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Dirección completa (BCS)</label>
+                <input type="text" id="cust-address" value="La Paz, Baja California Sur" oninput="updateAppState()" class="field w-full rounded-xl px-3.5 py-2.5 text-sm text-white">
               </div>
             </div>
 
-            <!-- GOOGLE MAPS INTERACTIVO INTEGRADO -->
-            <div class="mt-4">
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Geolocalización del Predio (Google Maps)</label>
-              <div id="google-map-customer" class="border border-slate-700"></div>
+            <div class="mt-5">
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Geolocalización del predio</label>
+              <div id="google-map-customer" class="rounded-xl border border-slate-700"></div>
             </div>
           </div>
 
-          <!-- HISTORIAL CFE & SELECCIÓN DE TARIFA -->
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="glass-panel rounded-2xl p-6">
             <h3 class="text-lg font-bold text-white flex items-center space-x-2 mb-4">
               <i data-lucide="zap" class="text-amber-400 w-5 h-5"></i>
-              <span>2. Tarifas CFE y Historial de Consumo (kWh)</span>
+              <span>2. Tarifas CFE y historial de consumo (kWh)</span>
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Lista Completa de Tarifas CFE</label>
-                <select id="cfe-tariff" onchange="calculateCFE()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-amber-400 font-semibold focus:outline-none">
-                  <option value="1F">Tarifa 1F (Residencial BCS - Subsidio Verano)</option>
-                  <option value="DAC">Tarifa DAC (Doméstica Alto Consumo - Sin Subsidio)</option>
-                  <option value="PDBT" selected>Tarifa PDBT (Pequeña Demanda Baja Tensión &lt;25kW)</option>
-                  <option value="GDBT">Tarifa GDBT (Gran Demanda Baja Tensión)</option>
-                  <option value="RABT">Tarifa RABT (Riego Agrícola Baja Tensión)</option>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Lista completa de tarifas CFE</label>
+                <select id="cfe-tariff" onchange="calculateCFE()" class="field w-full rounded-xl px-3.5 py-2.5 text-sm text-amber-400 font-semibold">
+                  <option value="1F">Tarifa 1F (Residencial BCS - Subsidio verano)</option>
+                  <option value="DAC">Tarifa DAC (Doméstica alto consumo - Sin subsidio)</option>
+                  <option value="PDBT" selected>Tarifa PDBT (Pequeña demanda baja tensión &lt;25kW)</option>
+                  <option value="GDBT">Tarifa GDBT (Gran demanda baja tensión)</option>
+                  <option value="RABT">Tarifa RABT (Riego agrícola baja tensión)</option>
                 </select>
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Frecuencia de Facturación</label>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Frecuencia de facturación</label>
                 <div class="grid grid-cols-2 gap-2 mt-1">
-                  <button type="button" onclick="setFrequency(6)" id="freq-6" class="py-2 px-3 text-xs font-bold rounded-lg border border-amber-500 bg-amber-500/20 text-amber-400">
+                  <button type="button" onclick="setFrequency(6)" id="freq-6" class="py-2.5 px-3 text-xs font-bold rounded-xl border border-amber-500 bg-amber-500/20 text-amber-400 transition">
                     Bimestral (6)
                   </button>
-                  <button type="button" onclick="setFrequency(12)" id="freq-12" class="py-2 px-3 text-xs font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-400">
+                  <button type="button" onclick="setFrequency(12)" id="freq-12" class="py-2.5 px-3 text-xs font-bold rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition">
                     Mensual (12)
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- GRILLA DINÁMICA DE CONSUMOS (6 O 12 PERIODOS) -->
-            <div id="consumption-inputs-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <!-- Renderizado mediante JS -->
-            </div>
+            <div id="consumption-inputs-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
           </div>
         </div>
 
-        <!-- RESUMEN DE CÁLCULO CFE -->
         <div class="lg:col-span-5 space-y-6">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sticky top-24">
-            <h3 class="text-base font-bold text-white mb-4 pb-2 border-b border-slate-800">
-              Diagnóstico Energético CFE
+          <div class="summary-card rounded-2xl p-6 sticky top-24">
+            <h3 class="text-base font-extrabold text-white mb-4 pb-2 border-b border-slate-800">
+              Diagnóstico energético CFE
             </h3>
 
             <div class="space-y-3">
               <div class="flex justify-between items-center text-sm">
-                <span class="text-slate-400">Consumo Total Anual:</span>
+                <span class="text-slate-400">Consumo total anual:</span>
                 <span id="kwh-annual" class="font-bold text-amber-400 text-base">0 kWh</span>
               </div>
               <div class="flex justify-between items-center text-sm">
-                <span class="text-slate-400">Promedio por Periodo:</span>
+                <span class="text-slate-400">Promedio por periodo:</span>
                 <span id="kwh-avg" class="font-bold text-white">0 kWh</span>
               </div>
               <div class="flex justify-between items-center text-sm">
-                <span class="text-slate-400">Costo Actual Estimado CFE:</span>
+                <span class="text-slate-400">Costo actual estimado CFE:</span>
                 <span id="cfe-cost-annual" class="font-bold text-red-400 text-base">$0.00 MXN</span>
               </div>
               <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 mt-4">
-                <p class="text-xs text-slate-300 font-medium">Recomendación Estructura Baja Pro-Services:</p>
-                <p id="cfe-recommendation" class="text-xs text-amber-400 mt-1">El cliente se beneficiará reduciendo la tarifa PDBT/DAC hacia tarifa mínima de interconexión CFE.</p>
+                <p class="text-[11px] text-slate-300 font-medium">Recomendación estructura Baja Pro-Services:</p>
+                <p id="cfe-recommendation" class="text-xs text-amber-400 mt-1">El cliente se beneficiará al reducir la tarifa PDBT/DAC hacia una estructura mínima de interconexión CFE.</p>
               </div>
             </div>
 
-            <button onclick="switchTab(3)" class="w-full mt-6 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg flex items-center justify-center space-x-2">
+            <button onclick="switchTab(3)" class="w-full mt-6 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-extrabold py-3 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20">
               <span>Continuar a Mapa Solar BCS</span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
@@ -249,22 +324,21 @@
       </div>
     </section>
 
-    <!-- ==================== PÁGINA 3: MAPA INTERACTIVO DE BAJA CALIFORNIA SUR ==================== -->
     <section id="page-3" class="hidden">
       <div class="space-y-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="glass-panel rounded-2xl p-6">
           <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
             <div>
               <h3 class="text-lg font-bold text-white flex items-center space-x-2">
                 <i data-lucide="map" class="text-amber-400 w-5 h-5"></i>
-                <span>Dimensionamiento Fotovoltaico en Baja California Sur</span>
+                <span>Dimensionamiento fotovoltaico en Baja California Sur</span>
               </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Seleccione municipio para ajustar Horas Sol Pico (HSP) e ingrese módulos solares</p>
+              <p class="text-xs text-slate-400 mt-1">Seleccione municipio para ajustar horas sol pico (HSP) e ingrese módulos solares</p>
             </div>
-            
+
             <div class="flex items-center space-x-3">
               <label class="text-xs font-semibold text-slate-300">Municipio BCS:</label>
-              <select id="bcs-municipality" onchange="onMunicipalityChange()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-amber-400 font-bold">
+              <select id="bcs-municipality" onchange="onMunicipalityChange()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-400 font-bold">
                 <option value="La Paz" selected>La Paz (6.2 HSP)</option>
                 <option value="Los Cabos">Los Cabos (6.4 HSP)</option>
                 <option value="Loreto">Loreto (6.1 HSP)</option>
@@ -274,22 +348,20 @@
             </div>
           </div>
 
-          <!-- CONTENEDOR MAPA LEAFLET -->
-          <div id="map-bcs" class="border border-slate-700 mb-6"></div>
+          <div id="map-bcs" class="mb-6 rounded-xl"></div>
 
-          <!-- SELECCIÓN DE PANELES E INVERSORES -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950/80 p-4 rounded-xl border border-slate-800">
             <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Cantidad de Paneles Solares</label>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Cantidad de paneles solares</label>
               <div class="flex items-center space-x-2">
-                <input type="number" id="panel-count" value="16" min="2" max="200" onchange="calculateSolarSystem()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-bold">
+                <input type="number" id="panel-count" value="16" min="2" max="200" onchange="calculateSolarSystem()" class="field w-full rounded-xl px-3 py-2.5 text-sm text-white">
                 <span class="text-xs text-slate-400">Piezas</span>
               </div>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Capacidad del Módulo (W)</label>
-              <select id="panel-power" onchange="calculateSolarSystem()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-semibold">
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Capacidad del módulo (W)</label>
+              <select id="panel-power" onchange="calculateSolarSystem()" class="field w-full rounded-xl px-3 py-2.5 text-sm text-white font-semibold">
                 <option value="550">550W Monocristalino PERC</option>
                 <option value="620">620W N-Type Bifacial</option>
                 <option value="650">650W TOPCon Ultra</option>
@@ -298,8 +370,8 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Inversor Interconexión CFE</label>
-              <select id="inverter-model" onchange="calculateSolarSystem()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-400 font-semibold">
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Inversor interconexión CFE</label>
+              <select id="inverter-model" onchange="calculateSolarSystem()" class="field w-full rounded-xl px-3 py-2.5 text-sm text-amber-400 font-semibold">
                 <option value="Growatt 8kW 220V Split-Phase">Growatt 8kW (2 Fases + 1 Neutro 220V)</option>
                 <option value="Growatt 10kW Híbrido">Growatt 10kW Híbrido Trifásico</option>
                 <option value="Growatt 15kW Industrial">Growatt 15kW Industrial CFE</option>
@@ -308,22 +380,21 @@
             </div>
           </div>
 
-          <!-- RESUMEN EN TIEMPO REAL -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
-              <span class="text-[10px] text-slate-400 uppercase block">Potencia Instalada</span>
+            <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 uppercase block">Potencia instalada</span>
               <span id="sys-kwp" class="text-lg font-extrabold text-amber-400">11.68 kWp</span>
             </div>
-            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
-              <span class="text-[10px] text-slate-400 uppercase block">Generación Anual</span>
+            <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 uppercase block">Generación anual</span>
               <span id="sys-annual-kwh" class="text-lg font-extrabold text-emerald-400">19,480 kWh</span>
             </div>
-            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
-              <span class="text-[10px] text-slate-400 uppercase block">Cobertura de Consumo</span>
+            <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 uppercase block">Cobertura de consumo</span>
               <span id="sys-coverage" class="text-lg font-extrabold text-blue-400">98%</span>
             </div>
-            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700">
-              <span class="text-[10px] text-slate-400 uppercase block">Inversión Turnkey Base</span>
+            <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 uppercase block">Inversión turnkey base</span>
               <span id="sys-cost-usd" class="text-lg font-extrabold text-white">$9,928 USD</span>
             </div>
           </div>
@@ -331,31 +402,30 @@
       </div>
     </section>
 
-    <!-- ==================== PÁGINA 4: COTIZACIÓN - CONTRATO MERCANTIL ==================== -->
     <section id="page-4" class="hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="glass-panel rounded-2xl p-6 md:p-8 space-y-6">
         <div class="flex justify-between items-start border-b border-slate-800 pb-4">
           <div>
-            <h2 class="text-xl font-bold text-white uppercase tracking-wide">Contrato Mercantil & Cotización Directa</h2>
+            <h2 class="text-xl font-bold text-white uppercase tracking-wide">Contrato mercantil & cotización directa</h2>
             <p class="text-xs text-amber-400 font-semibold">BAJA PRO-SERVICES S. DE R.L. DE C.V.</p>
           </div>
           <div class="text-right">
-            <span class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full text-xs font-bold">Folio: BPS-2026-892</span>
-            <p class="text-[10px] text-slate-400 mt-1">Fecha: 06 de Noviembre, 2026</p>
+            <span class="inline-block px-3 py-2 bg-amber-500/15 text-amber-400 rounded-full text-xs font-bold border border-amber-500/20">Folio: BPS-2026-892</span>
+            <p class="text-[10px] text-slate-400 mt-1">Fecha: 06 de noviembre, 2026</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
-          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
-            <p class="font-bold text-amber-400 uppercase">Prestador del Servicio:</p>
-            <p>Empresa: MULTISERVICIOS DOS MARES S DE RL DE CV / Baja Pro-Services</p>
-            <p>Representante Legal: Ing. José Manuel Álvarez Flores</p>
+          <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
+            <p class="font-bold text-amber-400 uppercase">Prestador del servicio:</p>
+            <p>Empresa: Baja Pro-Services / Multiservicios Dos Mares S. de R.L. de C.V.</p>
+            <p>Representante legal: Ing. José Manuel Álvarez Flores</p>
             <p>RFC: AAFM7008304P0</p>
             <p>Oficinas: Rosaura Zapata 2730, Col. Benito Juárez, La Paz, BCS</p>
           </div>
 
-          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
-            <p class="font-bold text-amber-400 uppercase">Cliente Contratante:</p>
+          <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
+            <p class="font-bold text-amber-400 uppercase">Cliente contratante:</p>
             <p>Nombre: <span id="contract-cust-name" class="font-bold text-white">---</span></p>
             <p>Teléfono: <span id="contract-cust-phone">---</span></p>
             <p>Ubicación: <span id="contract-cust-addr">---</span></p>
@@ -363,50 +433,47 @@
           </div>
         </div>
 
-        <!-- CLAUSULADO MERCANTIL GENERAL -->
         <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-400 space-y-2 leading-relaxed">
-          <p class="font-bold text-slate-200">CLÁUSULAS DEL CONTRATO MERCANTIL DE INTERCONEXIÓN:</p>
-          <p>1. <strong>OBJETO:</strong> La venta, montaje, interconexión y puesta en marcha de sistema fotovoltaico llave en mano ajustado a la normativa vigente de CFE (PDBT / 1F).</p>
-          <p>2. <strong>RESISTENCIA ESTRUCTURAL:</strong> Todas las estructuras instaladas cuentan con aluminio anodizado de alta resistencia mecánica certificadas para soportar vientos ciclónicos de hasta 240 km/h en zona costera de BCS.</p>
-          <p>3. <strong>PAGOS:</strong> Los precios promocionales corresponden exclusivamente a pagos de contado e instituciones bancarias autorizadas (KAPITAL BANK).</p>
+          <p class="font-bold text-slate-200">Cláusulas del contrato mercantil de interconexión:</p>
+          <p>1. <strong>Objeto:</strong> La venta, montaje, interconexión y puesta en marcha de sistema fotovoltaico llave en mano ajustado a la normativa vigente de CFE.</p>
+          <p>2. <strong>Resistencia estructural:</strong> Todas las estructuras instaladas cuentan con aluminio anodizado de alta resistencia mecánica y están diseñadas para soportar condiciones climáticas de la región costera.</p>
+          <p>3. <strong>Pagos:</strong> Los precios promocionales corresponden exclusivamente a pagos de contado o mediante instituciones bancarias autorizadas.</p>
         </div>
       </div>
     </section>
 
-    <!-- ==================== PÁGINA 5: REVISIÓN DE COTIZACIÓN Y PRECIO ($0.85 USD/W) ==================== -->
     <section id="page-5" class="hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+      <div class="glass-panel rounded-2xl p-6 space-y-6">
         <div class="flex justify-between items-center border-b border-slate-800 pb-4">
           <div>
-            <h3 class="text-lg font-bold text-white">Revisión de Cotización Valorada ($0.85 USD / Watt)</h3>
+            <h3 class="text-lg font-bold text-white">Revisión de cotización valorada ($0.85 USD / W)</h3>
             <p class="text-xs text-slate-400">Cálculo automatizado sobre la capacidad total del sistema fotovoltaico</p>
           </div>
-          <div class="px-4 py-2 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl font-bold text-sm">
-            Tarifa Unificada: $0.85 USD / W
+          <div class="px-4 py-2 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-xl font-bold text-sm">
+            Tarifa unificada: $0.85 USD / W
           </div>
         </div>
 
-        <!-- TABLA DE VALORACIÓN GLOBAL DE LA PROPOSAL -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-300">
             <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
               <tr>
-                <th class="p-3">Concepto Llave en Mano</th>
-                <th class="p-3">Potencia / Especificación</th>
-                <th class="p-3">Precio Base / W</th>
-                <th class="p-3 text-right">Inversión Total (Global)</th>
+                <th class="p-3">Concepto llave en mano</th>
+                <th class="p-3">Potencia / especificación</th>
+                <th class="p-3">Precio base / W</th>
+                <th class="p-3 text-right">Inversión total (global)</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800">
               <tr>
-                <td class="p-3 font-medium text-white">Sistema Fotovoltaico Interconectado CFE</td>
+                <td class="p-3 font-medium text-white">Sistema fotovoltaico interconectado CFE</td>
                 <td class="p-3" id="rev-capacity-w">11,680 Watts (16 Paneles 730W)</td>
                 <td class="p-3">$0.85 USD / Watt</td>
                 <td class="p-3 text-right font-bold text-amber-400 text-sm" id="rev-total-usd">$9,928.00 USD</td>
               </tr>
               <tr>
-                <td class="p-3 text-slate-400">Equivalente en Moneda Nacional (MXN)</td>
-                <td class="p-3 text-slate-400">Tipo de Cambio Fix $20.00 MXN/USD</td>
+                <td class="p-3 text-slate-400">Equivalente en moneda nacional (MXN)</td>
+                <td class="p-3 text-slate-400">Tipo de cambio fix $20.00 MXN/USD</td>
                 <td class="p-3 text-slate-400">---</td>
                 <td class="p-3 text-right font-bold text-emerald-400 text-sm" id="rev-total-mxn">$198,560.00 MXN</td>
               </tr>
@@ -416,99 +483,89 @@
 
         <div class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
           <p class="text-xs text-amber-300">
-            <strong>Nota Transparente:</strong> El cliente visualiza la cantidad global del proyecto cerrado sin desglose arbitrario unitario por insumo conforme a los lineamientos comerciales de Baja Pro-Services.
+            <strong>Nota transparente:</strong> El cliente visualiza la cantidad global del proyecto cerrado sin desglose arbitrario unitario por insumo conforme a los lineamientos comerciales de la empresa.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- ==================== PÁGINAS 5-6-7: LISTA DE MATERIALES & EQUIPOS SOLAR ==================== -->
     <section id="page-6" class="hidden">
-      <div id="quotation-printable-area" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-6">
-        
+      <div id="quotation-printable-area" class="glass-panel rounded-2xl p-6 md:p-8 space-y-6">
         <div class="flex items-center justify-between border-b border-slate-800 pb-4">
           <div class="flex items-center space-x-3">
-            <div class="bg-amber-500 text-slate-950 p-2 rounded-xl font-bold">
+            <div class="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 p-2.5 rounded-xl font-bold shadow-lg shadow-amber-500/20">
               <i data-lucide="sun" class="w-6 h-6"></i>
             </div>
             <div>
-              <h3 class="text-base font-extrabold text-white">LISTA DE MATERIALES Y EQUIPAMIENTO DE GENERACIÓN SOLAR</h3>
-              <p class="text-xs text-slate-400">Dictamen Técnico e Insumos Oficiales de Instalación en BCS</p>
+              <h3 class="text-base font-extrabold text-white">Lista de materiales y equipamiento de generación solar</h3>
+              <p class="text-xs text-slate-400">Dictamen técnico e insumos oficiales de instalación en BCS</p>
             </div>
           </div>
-          <span class="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full">Páginas 5 - 6 - 7</span>
+          <span class="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">Páginas 5 - 6 - 7</span>
         </div>
 
-        <!-- LISTADO COMPLETO DE INSUMOS -->
         <div class="space-y-4">
-          
-          <!-- SECCIÓN 1: PANELES -->
-          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800">
             <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center space-x-2">
               <i data-lucide="layers" class="w-4 h-4"></i>
-              <span>1. Módulos Fotovoltaicos de Alta Eficiencia</span>
+              <span>1. Módulos fotovoltaicos de alta eficiencia</span>
             </h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-300">
-              <p>• <strong>Módulos Seleccionados:</strong> <span id="mat-panels-desc">16x Paneles 730W Leapton High-Power Monocristalino</span></p>
-              <p>• <strong>Garantía Módulos:</strong> 12 años contra defecto de fábrica / 25 años producción lineal (84.8%)</p>
-              <p>• <strong>Certificación Costera:</strong> Resistencia a corrosión por niebla salina y amoníaco</p>
+              <p>• <strong>Módulos seleccionados:</strong> <span id="mat-panels-desc">16x Paneles 730W Leapton High-Power Monocristalino</span></p>
+              <p>• <strong>Garantía módulos:</strong> 12 años contra defecto de fábrica / 25 años producción lineal (84.8%)</p>
+              <p>• <strong>Certificación costera:</strong> Resistencia a corrosión por niebla salina y amoníaco</p>
             </div>
           </div>
 
-          <!-- SECCIÓN 2: INVERSOR -->
-          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800">
             <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center space-x-2">
               <i data-lucide="cpu" class="w-4 h-4"></i>
-              <span>2. Inversor Central / Microinversores de Interconexión</span>
+              <span>2. Inversor central / microinversores de interconexión</span>
             </h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-300">
-              <p>• <strong>Equipo de Conversión:</strong> <span id="mat-inv-desc">Growatt 8kW (2 Fases + 1 Neutro 220V)</span></p>
-              <p>• <strong>Eficiencia Máxima MPPT:</strong> 98.4% eficiencia de conversión DC a AC</p>
-              <p>• <strong>Monitoreo WiFi/App:</strong> Conectividad en tiempo real via Growatt ShinePhone</p>
+              <p>• <strong>Equipo de conversión:</strong> <span id="mat-inv-desc">Growatt 8kW (2 Fases + 1 Neutro 220V)</span></p>
+              <p>• <strong>Eficiencia máxima MPPT:</strong> 98.4% eficiencia de conversión DC a AC</p>
+              <p>• <strong>Monitoreo WiFi/App:</strong> Conectividad en tiempo real vía Growatt ShinePhone</p>
             </div>
           </div>
 
-          <!-- SECCIÓN 3: ESTRUCTURA ANTI-HURACÁN -->
-          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800">
             <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center space-x-2">
               <i data-lucide="shield" class="w-4 h-4"></i>
-              <span>3. Estructuras de Soporte y Fijación Aluminio Anodizado</span>
+              <span>3. Estructuras de soporte y fijación aluminio anodizado</span>
             </h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-300">
-              <p>• <strong>Rieles y Clamps:</strong> Aluminio Anodizado 6005-T5 con tornillería de acero inoxidable 304</p>
-              <p>• <strong>Resistencia Ciclónica:</strong> Certificación de cálculo estructural vientos sostenidos 240 km/h</p>
+              <p>• <strong>Rieles y clamps:</strong> Aluminio anodizado 6005-T5 con tornillería de acero inoxidable 304</p>
+              <p>• <strong>Resistencia ciclónica:</strong> Certificación de cálculo estructural con vientos sostenidos de 240 km/h</p>
               <p>• <strong>Impermeabilización:</strong> Sello termoplástico de poliuretano en perforaciones de azotea</p>
             </div>
           </div>
 
-          <!-- SECCIÓN 4: PROTECCIONES Y CABLEADO -->
-          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800">
             <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center space-x-2">
               <i data-lucide="zap" class="w-4 h-4"></i>
-              <span>4. Protecciones Eléctricas, Gabinetes y Balance de Sistema</span>
+              <span>4. Protecciones eléctricas, gabinetes y balance de sistema</span>
             </h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-300">
               <p>• Cable fotovoltaico 10 AWG con protección UV para intemperie</p>
-              <p>• Gabinete de Protecciones NEMA 4X anticorrosivo</p>
-              <p>• Supresor de picos de voltaje (DPS clase II) en Corriente Directa y Alterna</p>
+              <p>• Gabinete de protecciones NEMA 4X anticorrosivo</p>
+              <p>• Supresor de picos de voltaje (DPS clase II) en corriente directa y alterna</p>
               <p>• Interruptores termomagnéticos de seguridad y sistema de tierra física dedicado</p>
             </div>
           </div>
         </div>
 
-        <!-- ÁREA DE FIRMA DIGITAL CON CANVAS -->
         <div class="pt-6 border-t border-slate-800">
-          <h4 class="text-xs font-bold text-slate-300 uppercase mb-2">Firma Digital de Conformidad del Cliente:</h4>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-[0.16em] mb-2">Firma digital de conformidad del cliente</h4>
           <div class="bg-slate-950 border border-slate-700 rounded-xl p-2 max-w-md">
             <canvas id="signature-pad" width="400" height="120" class="w-full bg-slate-900 rounded-lg cursor-crosshair"></canvas>
             <div class="flex justify-between items-center mt-2 px-1">
-              <button onclick="clearSignature()" class="text-[10px] text-red-400 hover:underline">Borrar Firma</button>
+              <button onclick="clearSignature()" class="text-[10px] text-red-400 hover:text-red-300 underline">Borrar firma</button>
               <span class="text-[10px] text-slate-500">Dibuje su firma con el mouse o pantalla táctil</span>
             </div>
           </div>
         </div>
 
-        <!-- BOTONES DE EXPORTACIÓN Y ACCIÓN -->
         <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800">
           <div class="flex items-center space-x-3">
             <button onclick="exportToPDF()" class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition">
@@ -517,34 +574,29 @@
             </button>
             <button onclick="exportToImage()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition">
               <i data-lucide="image" class="w-4 h-4"></i>
-              <span>Descargar Imagen JPG/PNG</span>
+              <span>Descargar imagen JPG/PNG</span>
             </button>
           </div>
 
-          <button onclick="sendWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 shadow-lg shadow-emerald-500/20 transition">
+          <button onclick="sendWhatsApp()" class="bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs flex items-center space-x-2 shadow-lg shadow-emerald-600/20 transition">
             <i data-lucide="message-square" class="w-4 h-4"></i>
-            <span>Enviar Cotización por WhatsApp</span>
+            <span>Enviar cotización por WhatsApp</span>
           </button>
         </div>
-
       </div>
     </section>
-
   </main>
 
-  <!-- PIE DE PÁGINA -->
   <footer class="bg-slate-950 border-t border-slate-800 py-4 text-center text-xs text-slate-500 mt-8">
     <p>© 2026 BAJA PRO-SERVICES — Multiservicios Dos Mares S. de R.L. de C.V. | La Paz, Baja California Sur</p>
   </footer>
 
-  <!-- LÓGICA JAVASCRIPT DE LA APLICACIÓN -->
   <script>
-    // ESTADO GLOBAL DE LA APLICACIÓN
     const state = {
       isAuthenticated: false,
       userEmail: '',
       currentTab: 1,
-      frequency: 6, // 6 bimestres o 12 meses
+      frequency: 6,
       kwhInputs: Array(6).fill(1200),
       tariff: 'PDBT',
       municipality: 'La Paz',
@@ -561,37 +613,51 @@
     let signatureCtx = null;
     let isDrawing = false;
 
-    // INICIALIZACIÓN
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       renderConsumptionInputs();
       initSignaturePad();
+      setFrequency(6);
+      calculateSolarSystem();
+      syncContractData();
+      switchTab(1);
     });
 
-    // SISTEMA DE AUTENTICACIÓN
     function handleLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      if (email) {
-        state.isAuthenticated = true;
-        state.userEmail = email;
-        unlockSystem();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-pass').value.trim();
+
+      if (!email || !password) {
+        alert('Completa correo y contraseña para continuar.');
+        return;
       }
+
+      state.isAuthenticated = true;
+      state.userEmail = email;
+      unlockSystem();
     }
 
     function handleRegister(e) {
       e.preventDefault();
-      const email = document.getElementById('reg-email').value;
-      if (email) {
-        state.isAuthenticated = true;
-        state.userEmail = email;
-        alert('Registro completado. Bienvenido a la plataforma Baja Pro-Services.');
-        unlockSystem();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-pass').value.trim();
+
+      if (!name || !email || !password) {
+        alert('Completa todos los campos para registrarte.');
+        return;
       }
+
+      state.isAuthenticated = true;
+      state.userEmail = email;
+      alert('Registro completado. Bienvenido a la plataforma Baja Pro-Services.');
+      unlockSystem();
     }
 
     function unlockSystem() {
       document.getElementById('user-status-bar').classList.remove('hidden');
+      document.getElementById('user-status-bar').classList.add('flex');
       document.getElementById('main-nav').classList.remove('hidden');
       document.getElementById('active-user-email').innerText = state.userEmail;
       switchTab(2);
@@ -599,22 +665,26 @@
 
     function logout() {
       state.isAuthenticated = false;
+      state.userEmail = '';
       document.getElementById('user-status-bar').classList.add('hidden');
+      document.getElementById('user-status-bar').classList.remove('flex');
       document.getElementById('main-nav').classList.add('hidden');
       switchTab(1);
     }
 
     function toggleAuthMode(mode) {
+      const loginBox = document.getElementById('login-form-box');
+      const registerBox = document.getElementById('register-form-box');
+
       if (mode === 'register') {
-        document.getElementById('login-form-box').classList.add('hidden');
-        document.getElementById('register-form-box').classList.remove('hidden');
+        loginBox.classList.add('hidden');
+        registerBox.classList.remove('hidden');
       } else {
-        document.getElementById('register-form-box').classList.add('hidden');
-        document.getElementById('login-form-box').classList.remove('hidden');
+        registerBox.classList.add('hidden');
+        loginBox.classList.remove('hidden');
       }
     }
 
-    // CONTROL DE NAVEGACIÓN ENTRE PÁGINAS (PESTAÑAS)
     function switchTab(tabIndex) {
       if (!state.isAuthenticated && tabIndex !== 1) {
         alert('Debe autenticarse en la Página 1 para acceder al sistema.');
@@ -622,6 +692,7 @@
       }
 
       state.currentTab = tabIndex;
+
       for (let i = 1; i <= 6; i++) {
         const page = document.getElementById(`page-${i}`);
         const btn = document.getElementById(`tab-btn-${i}`);
@@ -629,26 +700,35 @@
         if (btn) btn.classList.remove('tab-active');
       }
 
-      document.getElementById(`page-${tabIndex}`).classList.remove('hidden');
-      document.getElementById(`tab-btn-${tabIndex}`).classList.add('tab-active');
+      const page = document.getElementById(`page-${tabIndex}`);
+      const btn = document.getElementById(`tab-btn-${tabIndex}`);
+
+      if (page) page.classList.remove('hidden');
+      if (btn) btn.classList.add('tab-active');
 
       if (tabIndex === 2) initGoogleMapCustomer();
       if (tabIndex === 3) initBCSMap();
       if (tabIndex >= 4) syncContractData();
     }
 
-    // PÁGINA 2: LÓGICA DE CONSUMO CFE
     function setFrequency(freq) {
       state.frequency = freq;
       state.kwhInputs = Array(freq).fill(freq === 6 ? 1200 : 600);
-      
-      document.getElementById('freq-6').className = freq === 6 
-        ? 'py-2 px-3 text-xs font-bold rounded-lg border border-amber-500 bg-amber-500/20 text-amber-400'
-        : 'py-2 px-3 text-xs font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-400';
-      
-      document.getElementById('freq-12').className = freq === 12 
-        ? 'py-2 px-3 text-xs font-bold rounded-lg border border-amber-500 bg-amber-500/20 text-amber-400'
-        : 'py-2 px-3 text-xs font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-400';
+
+      const sixBtn = document.getElementById('freq-6');
+      const twelveBtn = document.getElementById('freq-12');
+
+      if (sixBtn) {
+        sixBtn.className = freq === 6
+          ? 'py-2.5 px-3 text-xs font-bold rounded-xl border border-amber-500 bg-amber-500/20 text-amber-400 transition'
+          : 'py-2.5 px-3 text-xs font-bold rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition';
+      }
+
+      if (twelveBtn) {
+        twelveBtn.className = freq === 12
+          ? 'py-2.5 px-3 text-xs font-bold rounded-xl border border-amber-500 bg-amber-500/20 text-amber-400 transition'
+          : 'py-2.5 px-3 text-xs font-bold rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition';
+      }
 
       renderConsumptionInputs();
       calculateCFE();
@@ -656,21 +736,24 @@
 
     function renderConsumptionInputs() {
       const container = document.getElementById('consumption-inputs-grid');
+      if (!container) return;
+
       container.innerHTML = '';
-      
-      const labels = state.frequency === 6 
+
+      const labels = state.frequency === 6
         ? ['Bimestre 1', 'Bimestre 2', 'Bimestre 3', 'Bimestre 4', 'Bimestre 5', 'Bimestre 6']
         : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
       labels.forEach((label, idx) => {
         const div = document.createElement('div');
-        div.className = 'bg-slate-950 p-2.5 rounded-lg border border-slate-800';
+        div.className = 'bg-slate-950/90 p-2.5 rounded-xl border border-slate-800';
         div.innerHTML = `
           <label class="block text-[10px] text-slate-400 font-semibold mb-1">${label}</label>
-          <input type="number" value="${state.kwhInputs[idx]}" onchange="updateKwhInput(${idx}, this.value)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-400 font-bold">
+          <input type="number" value="${state.kwhInputs[idx]}" onchange="updateKwhInput(${idx}, this.value)" class="field w-full rounded-lg px-2 py-1.5 text-xs text-amber-400">
         `;
         container.appendChild(div);
       });
+
       calculateCFE();
     }
 
@@ -681,32 +764,47 @@
 
     function calculateCFE() {
       state.tariff = document.getElementById('cfe-tariff').value;
+
       const totalKwh = state.kwhInputs.reduce((a, b) => a + b, 0);
       const avgKwh = totalKwh / state.frequency;
 
-      let costPerKwh = 3.80; // Costo base aproximado PDBT / DAC en BCS
+      let costPerKwh = 3.8;
       if (state.tariff === '1F') costPerKwh = 1.85;
       if (state.tariff === 'DAC') costPerKwh = 6.75;
       if (state.tariff === 'PDBT') costPerKwh = 4.50;
 
       const annualCost = totalKwh * costPerKwh;
 
-      document.getElementById('kwh-annual').innerText = `${totalKwh.toLocaleString()} kWh`;
-      document.getElementById('kwh-avg').innerText = `${Math.round(avgKwh).toLocaleString()} kWh`;
-      document.getElementById('cfe-cost-annual').innerText = `$${Math.round(annualCost).toLocaleString()} MXN`;
+      const totalEl = document.getElementById('kwh-annual');
+      const avgEl = document.getElementById('kwh-avg');
+      const costEl = document.getElementById('cfe-cost-annual');
+
+      if (totalEl) totalEl.innerText = `${totalKwh.toLocaleString()} kWh`;
+      if (avgEl) avgEl.innerText = `${Math.round(avgKwh).toLocaleString()} kWh`;
+      if (costEl) costEl.innerText = `$${Math.round(annualCost).toLocaleString()} MXN`;
+
+      const rec = document.getElementById('cfe-recommendation');
+      if (rec) {
+        const tariffText = state.tariff === '1F' ? 'tarifa residencial 1F' :
+          state.tariff === 'DAC' ? 'tarifa DAC' :
+          state.tariff === 'PDBT' ? 'tarifa PDBT' :
+          state.tariff === 'GDBT' ? 'tarifa GDBT' : 'tarifa RABT';
+        rec.innerText = `Se recomienda revisar la estructura operativa para optimizar ${tariffText} y mejorar la eficiencia económica del cliente.`;
+      }
     }
 
     function initGoogleMapCustomer() {
       const mapElem = document.getElementById('google-map-customer');
-      if (mapElem.children.length === 0) {
-        // Renderizado del mapa simplificado mediante Leaflet focalizado en La Paz
+      if (!mapElem) return;
+
+      if (!mapElem.dataset.initialized) {
         const map = L.map('google-map-customer').setView([24.1426, -110.3127], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        L.marker([24.1426, -110.3127]).addTo(map).bindPopup('Ubicación del Cliente: La Paz, BCS').openPopup();
+        L.marker([24.1426, -110.3127]).addTo(map).bindPopup('Ubicación del cliente: La Paz, BCS').openPopup();
+        mapElem.dataset.initialized = 'true';
       }
     }
 
-    // PÁGINA 3: MAPA INTERACTIVO BAJA CALIFORNIA SUR
     function initBCSMap() {
       if (!bcsMap) {
         bcsMap = L.map('map-bcs').setView([25.5000, -111.5000], 7);
@@ -742,68 +840,96 @@
 
       const totalWatts = state.panelCount * state.panelPower;
       const kwp = totalWatts / 1000;
-      const annualKwh = kwp * state.hsp * 365 * 0.82; // 0.82 factor de rendimiento
+      const annualKwh = kwp * state.hsp * 365 * 0.82;
       const costUSD = totalWatts * state.pricePerWattUSD;
+      const coverage = Math.min(99, (annualKwh / (state.kwhInputs.reduce((a, b) => a + b, 0) || 1)) * 100);
 
       document.getElementById('sys-kwp').innerText = `${kwp.toFixed(2)} kWp`;
       document.getElementById('sys-annual-kwh').innerText = `${Math.round(annualKwh).toLocaleString()} kWh`;
-      document.getElementById('sys-cost-usd').innerText = `$${costUSD.toLocaleString('en-US', {minimumFractionDigits: 2})} USD`;
+      document.getElementById('sys-cost-usd').innerText = `$${costUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+      document.getElementById('sys-coverage').innerText = `${Math.round(coverage)}%`;
 
       syncContractData();
     }
 
-    // SINCRONIZACIÓN DE PÁGINAS 4, 5, 6 Y 7
     function syncContractData() {
-      const custName = document.getElementById('cust-name').value;
-      const custPhone = document.getElementById('cust-phone').value;
-      const custAddr = document.getElementById('cust-address').value;
+      const custName = document.getElementById('cust-name')?.value || '---';
+      const custPhone = document.getElementById('cust-phone')?.value || '---';
+      const custAddr = document.getElementById('cust-address')?.value || '---';
 
-      document.getElementById('contract-cust-name').innerText = custName;
-      document.getElementById('contract-cust-phone').innerText = custPhone;
-      document.getElementById('contract-cust-addr').innerText = custAddr;
-      document.getElementById('contract-cust-tariff').innerText = state.tariff;
+      const targetName = document.getElementById('contract-cust-name');
+      const targetPhone = document.getElementById('contract-cust-phone');
+      const targetAddr = document.getElementById('contract-cust-addr');
+      const targetTariff = document.getElementById('contract-cust-tariff');
+
+      if (targetName) targetName.innerText = custName;
+      if (targetPhone) targetPhone.innerText = custPhone;
+      if (targetAddr) targetAddr.innerText = custAddr;
+      if (targetTariff) targetTariff.innerText = state.tariff;
 
       const totalWatts = state.panelCount * state.panelPower;
       const costUSD = totalWatts * state.pricePerWattUSD;
       const costMXN = costUSD * state.exchangeRate;
 
-      document.getElementById('rev-capacity-w').innerText = `${totalWatts.toLocaleString()} Watts (${state.panelCount} Paneles ${state.panelPower}W)`;
-      document.getElementById('rev-total-usd').innerText = `$${costUSD.toLocaleString('en-US', {minimumFractionDigits: 2})} USD`;
-      document.getElementById('rev-total-mxn').innerText = `$${costMXN.toLocaleString('es-MX', {minimumFractionDigits: 2})} MXN`;
+      const revCapacity = document.getElementById('rev-capacity-w');
+      const revUSD = document.getElementById('rev-total-usd');
+      const revMXN = document.getElementById('rev-total-mxn');
 
-      document.getElementById('mat-panels-desc').innerText = `${state.panelCount}x Paneles ${state.panelPower}W Monocristalino High-Power`;
-      document.getElementById('mat-inv-desc').innerText = state.inverter;
+      if (revCapacity) revCapacity.innerText = `${totalWatts.toLocaleString()} Watts (${state.panelCount} Paneles ${state.panelPower}W)`;
+      if (revUSD) revUSD.innerText = `$${costUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+      if (revMXN) revMXN.innerText = `$${costMXN.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+
+      const matPanels = document.getElementById('mat-panels-desc');
+      const matInv = document.getElementById('mat-inv-desc');
+
+      if (matPanels) matPanels.innerText = `${state.panelCount}x Paneles ${state.panelPower}W Monocristalino High-Power`;
+      if (matInv) matInv.innerText = state.inverter;
     }
 
     function updateAppState() {
       syncContractData();
     }
 
-    // CANVAS DE FIRMA DIGITAL
     function initSignaturePad() {
       signatureCanvas = document.getElementById('signature-pad');
+      if (!signatureCanvas) return;
+
       signatureCtx = signatureCanvas.getContext('2d');
       signatureCtx.strokeStyle = '#f59e0b';
       signatureCtx.lineWidth = 2;
+      signatureCtx.lineCap = 'round';
+      signatureCtx.lineJoin = 'round';
 
       signatureCanvas.addEventListener('mousedown', startDrawing);
       signatureCanvas.addEventListener('mousemove', draw);
       signatureCanvas.addEventListener('mouseup', stopDrawing);
-      signatureCanvas.addEventListener('touchstart', startDrawing);
-      signatureCanvas.addEventListener('touchmove', draw);
+      signatureCanvas.addEventListener('mouseleave', stopDrawing);
+
+      signatureCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+      signatureCanvas.addEventListener('touchmove', draw, { passive: false });
       signatureCanvas.addEventListener('touchend', stopDrawing);
+      signatureCanvas.addEventListener('touchcancel', stopDrawing);
     }
 
     function startDrawing(e) {
+      if (e.type === 'touchstart') e.preventDefault();
       isDrawing = true;
       draw(e);
     }
 
     function draw(e) {
-      if (!isDrawing) return;
+      if (!isDrawing || !signatureCtx || !signatureCanvas) return;
+
       const rect = signatureCanvas.getBoundingClientRect();
-      const x = (e.clientX || e.touches[0].clientX) - rect.left;
-      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+      let x, y;
+
+      if (e.touches && e.touches.length) {
+        x = (e.touches[0].clientX - rect.left) * (signatureCanvas.width / rect.width);
+        y = (e.touches[0].clientY - rect.top) * (signatureCanvas.height / rect.height);
+      } else {
+        x = (e.clientX - rect.left) * (signatureCanvas.width / rect.width);
+        y = (e.clientY - rect.top) * (signatureCanvas.height / rect.height);
+      }
 
       signatureCtx.lineTo(x, y);
       signatureCtx.stroke();
@@ -813,31 +939,36 @@
 
     function stopDrawing() {
       isDrawing = false;
-      signatureCtx.beginPath();
+      if (signatureCtx) signatureCtx.beginPath();
     }
 
     function clearSignature() {
-      signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      if (signatureCtx && signatureCanvas) {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      }
     }
 
-    // EXPORTACIÓN A PDF E IMAGEN
     function exportToPDF() {
       const element = document.getElementById('quotation-printable-area');
+      if (!element) return;
+
       const opt = {
-        margin:       0.3,
-        filename:     `Cotizacion_BajaProServices_${state.panelCount}P.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        margin: 0.3,
+        filename: `Cotizacion_BajaProServices_${state.panelCount}P.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(element).save();
     }
 
     function exportToImage() {
       const element = document.getElementById('quotation-printable-area');
+      if (!element) return;
+
       html2canvas(element).then(canvas => {
         const link = document.createElement('a');
-        link.download = `Cotizacion_BajaProServices.png`;
+        link.download = 'Cotizacion_BajaProServices.png';
         link.href = canvas.toDataURL();
         link.click();
       });
@@ -858,4 +989,4 @@
     }
   </script>
 </body>
-</html>de
+</html>
